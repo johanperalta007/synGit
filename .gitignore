@@ -1,0 +1,66 @@
+# Node.js #
+############
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Environment variable files
+.env
+.env.test
+.env.production
+
+# Local IDE/Editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Optional npm cache directory
+.npm/
+
+# Yarn v1
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Yarn v2 and above (plug'n'play)
+.pnp.*
+.yarn/*
+!yarn/cache
+!yarn/releases
+!yarn/plugins
+!yarn/sdks
+!yarn/versions
+
+# Debugging files
+*.tgz
+*.log
+*.lock

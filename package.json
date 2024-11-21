@@ -1,0 +1,16 @@
+{
+  "name": "syngit",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Johan E Peralta M",
+  "license": "ISC",
+  "description": "Software de sincronización de ramas",
+  "dependencies": {
+    "nodemon": "^3.1.7",
+    "simple-git": "^3.27.0"
+  }
+}
