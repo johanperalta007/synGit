@@ -1,60 +1,67 @@
 const simpleGit = require('simple-git');
 const path = require('path');
+const fs = require('fs');
 
-// Configuración de simple-git
-const git = simpleGit(path.resolve('')); // Ruta del repositorio local
+const repoPath = path.resolve(__dirname, '/Users/johan.peralta/Documents/Banco de Bogota/Development/devops-bbog-ee-hefesto');
 
-// Ramas principales
-const mainBranches = ['develop', 'master'];
+if (!fs.existsSync(repoPath)) {
+  console.error(`El repositorio en la ruta ${repoPath} no existe.`);
+  process.exit(1);
+}
+
+const git = simpleGit(repoPath);
+
+const mainBranches = ['develop', 'main'];
 
 const syncBranches = async () => {
   const result = [];
   try {
-    // Obtener ramas locales
-    const branches = await git.branchLocal();
+    const currentBranch = (await git.branchLocal()).current;
+    result.push(`Revisando la rama actual: ${currentBranch}`);
 
-    for (const branch of branches.all) {
-      result.push(`Revisando la rama: ${branch}`);
+    const remoteBranch = await findRemoteBranch();
 
-      // Cambiar a la rama actual
-      await git.checkout(branch);
+    if (!remoteBranch) {
+      result.push(`⚠️ No se encontró una rama remota principal ('develop' o 'main') para sincronizar.`);
+      return result;
+    }
 
-      // Encontrar la rama remota principal
-      const remoteBranch = await findRemoteBranch(branch);
+    result.push(`Sincronizando la rama actual "${currentBranch}" con "origin/${remoteBranch}"...`);
 
-      if (!remoteBranch) {
-        result.push(`⚠️ No se encontró una rama remota principal para "${branch}".`);
-        continue;
-      }
+    await git.fetch('origin', remoteBranch);
+    const log = await git.log({ from: currentBranch, to: `origin/${remoteBranch}` });
 
-      // Comparar la rama local con la remota
-      await git.fetch();
-      const log = await git.log({ from: branch, to: `origin/${remoteBranch}` });
-
-      if (log.total === 0) {
-        result.push(`✔️ La rama "${branch}" está sincronizada con "${remoteBranch}".`);
-      } else {
-        result.push(`↕️ La rama "${branch}" tiene diferencias con "${remoteBranch}". Bajando cambios...`);
-        await git.pull('origin', remoteBranch);
-        result.push(`✔️ La rama "${branch}" ha sido sincronizada con "${remoteBranch}".`);
-      }
+    if (log.total === 0) {
+      result.push(`✔️ La rama "${currentBranch}" ya está sincronizada con "origin/${remoteBranch}".`);
+    } else {
+      await git.pull('origin', remoteBranch);
+      result.push(`✔️ La rama "${currentBranch}" ha sido sincronizada con "origin/${remoteBranch}".`);
     }
   } catch (error) {
-    result.push(`❌ Error al sincronizar ramas: ${error.message}`);
+    result.push(`❌ Error al sincronizar la rama: ${error.message}`);
   }
   return result;
 };
 
-// Función auxiliar para encontrar la rama remota principal
-const findRemoteBranch = async (branch) => {
+const findRemoteBranch = async () => {
   for (const main of mainBranches) {
-    const isRemoteExist = await git.listRemote([`origin/${main}`]);
-    if (isRemoteExist.includes(main)) {
-      return main;
+    try {
+      const remoteList = await git.listRemote(['origin']);
+      if (remoteList.includes(`refs/heads/${main}`)) {
+        return main;
+      }
+    } catch (err) {
+      console.log(`Error al verificar la rama remota: ${err.message}`);
     }
   }
   return null;
 };
+
+syncBranches().then((result) => {
+  console.log(result.join('\n'));
+}).catch((error) => {
+  console.error(`Error al ejecutar la sincronización: ${error.message}`);
+});
 
 module.exports = {
   syncBranches,
